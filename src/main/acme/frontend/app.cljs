@@ -1,10 +1,12 @@
 (ns acme.frontend.app
-  (:require [reagent.core :as r]
-            [reagent.dom :as rd]
-            [reagent.dom.client :as rdc]))
+  (:require
+    [clojure.string :as str]
+    [reagent.core :as r]
+    [reagent.dom :as rd]
+    [reagent.dom.client :as rdc]))
+
 
 (defn simple-component
-  ""
   []
   [:div
    [:p "I am a component!"]
@@ -12,64 +14,88 @@
     "I have " [:strong "bold"]
     [:span {:style {:color "red"}} " and red "] "text."]])
 
-(defn simple-parent []
+
+(defn simple-parent
+  []
   [:div
    [:p "I include simple-component."]
    [simple-component]])
 
-(defn hello-component [name]
+
+(defn hello-component
+  [name]
   [:p "Hello, " name "!"])
 
-(defn say-hello []
+
+(defn say-hello
+  []
   [hello-component "world"])
 
-(defn lister [items]
+
+(defn lister
+  [items]
   [:ul
    (for [item items]
      ^{:key item} [:li "Item " item])])
 
-(defn lister-user []
+
+(defn lister-user
+  []
   [:div
    "Here is a list:"
    [lister (range 3)]])
 
+
 (def click-count (r/atom 0))
 
-(defn counting-component []
+
+(defn counting-component
+  []
   [:div
    "The atom " [:code "click-count"] " has value: "
    [:code @click-count] "."
    [:input {:type "button" :value "Click me!"
             :on-click #(swap! click-count inc)}]])
 
-(defn timer-component []
+
+(defn timer-component
+  []
   (let [seconds-elapsed (r/atom 0)]
     (fn []
       (js/setTimeout #(swap! seconds-elapsed inc) 1000)
       [:div
        "Seconds Elapsed: " @seconds-elapsed])))
 
-(defn atom-input [value]
+
+(defn atom-input
+  [value]
   [:input {:type "text"
            :value @value
            :on-change #(reset! value (-> % .-target .-value))}])
 
-(defn shared-state []
+
+(defn shared-state
+  []
   (let [val (r/atom "foo")]
     (fn []
       [:div
        [:p "The value is now: " @val]
        [:p "Change it here: " [atom-input val]]])))
 
-(defn calc-bmi [{:keys [height weight bmi] :as data}]
+
+(defn calc-bmi
+  [{:keys [height weight bmi] :as data}]
   (let [h (/ height 100)]
     (if (nil? bmi)
-        (assoc data :bmi (/ weight (* h h)))
-        (assoc data :weight (* bmi h h)))))
+      (assoc data :bmi (/ weight (* h h)))
+      (assoc data :weight (* bmi h h)))))
+
 
 (def bmi-data (r/atom (calc-bmi {:height 180 :weight 80})))
 
-(defn slider [param value min max invalidates]
+
+(defn slider
+  [param value min max invalidates]
   [:input {:type "range" :value value :min min :max max
            :style {:width "100%"}
            :on-change (fn [e]
@@ -81,7 +107,9 @@
                                        (dissoc invalidates)
                                        calc-bmi)))))}])
 
-(defn bmi-component []
+
+(defn bmi-component
+  []
   (let [{:keys [weight height bmi]} @bmi-data
         [color diagnose] (cond
                            (< bmi 18.5) ["orange" "underweight"]
@@ -102,7 +130,47 @@
       [slider :bmi bmi 10 50 :weight]]]))
 
 
-(defn init []
+(defonce timer (r/atom (js/Date.)))
+
+(defonce time-color (r/atom "#f34"))
+
+
+(defonce time-updater (js/setInterval
+                        #(reset! timer (js/Date.)) 1000))
+
+
+(defn greeting
+  [message]
+  [:h1 message])
+
+
+(defn clock
+  []
+  (let [time-str (-> @timer .toTimeString (str/split " ") first)]
+    [:div.example-clock
+     {:style {:color @time-color}}
+     time-str]))
+
+
+(defn color-input
+  []
+  [:div.color-input
+   "Time color: "
+   [:input {:type "text"
+            :value @time-color
+            :on-change #(reset! time-color (-> % .-target .-value))}]])
+
+
+(defn simple-example
+  []
+  [:div
+   [greeting "Hello world, it it now"]
+   [clock]
+   [color-input]])
+
+
+(defn init
+  []
   (let [root (rdc/create-root (js/document.getElementById "root"))]
     (rdc/render root [:div
                       [simple-parent]
@@ -114,4 +182,4 @@
                       [:p
                        "My BMI is: " (:bmi (calc-bmi {:height 172 :weight 57}))]
                       [bmi-component]
-                      ])))
+                      [simple-example]])))
