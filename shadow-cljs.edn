@@ -5,11 +5,12 @@
   "src/test"]
 
  :dependencies
- [[reagent "1.2.0"]]
+ [[reagent "1.2.0"]
+  [lilactown/helix "0.1.11"]]
 
  :dev-http {8080 "public"}
  :builds
  {:frontend
   {:target :browser
-   :modules {:main {:init-fn acme.frontend.app/init}}
+   :modules {:main {:init-fn acme.frontend.newapp/init}}
    }}}

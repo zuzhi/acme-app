@@ -6,7 +6,9 @@
     "shadow-cljs": "2.28.12"
   },
   "dependencies": {
+    "@instantdb/react": "^0.12.26",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-refresh": "^0.14.2"
   }
 }
