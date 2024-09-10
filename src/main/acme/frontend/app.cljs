@@ -4,6 +4,7 @@
     [clojure.string :as str]
     [reagent.core :as r]
     [reagent.dom :as rd]
+    ["@instantdb/react" :as instantdb]
     [reagent.dom.client :as rdc]))
 
 
@@ -327,11 +328,35 @@
          [:footer#info
           [:p "Double-click to edit a todo"]]]))))
 
+;; ID for app: chaptify
+(def app-id "71eb5a33-d683-4c63-8638-109df239ec0a")
+
+;; Initialize the InstantDB
+(def db (instantdb/init #js {:appId app-id}))
+
+(defn projects-page
+  []
+  (let [query {:projects {:$ {:where {:status "normal"}}}}
+        result (.useQuery db (clj->js query))
+        {:keys [isLoading error data]} (js->clj result :keywordize-keys true)
+        projects (or (:projects data) [])]
+    (cond
+      isLoading
+      [:div "loading"]
+
+      error
+      [:div (str "Error fetching data: " (.-message error))]
+
+      :else
+      [:ul
+       (for [p projects] [:li {:key (:id p)} (:name p)])])))
+
 
 (defn init
   []
   (let [root (rdc/create-root (js/document.getElementById "root"))]
     (rdc/render root [:div
+                      [:f> projects-page]
                       [simple-parent]
                       [say-hello]
                       [lister-user]
